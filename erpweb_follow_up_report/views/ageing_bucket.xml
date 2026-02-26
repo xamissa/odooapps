@@ -1,0 +1,371 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+   <template id="table_header_template_followup_report_inherit" inherit_id="account_followup.table_header_template_followup_report">
+        <xpath expr="//thead[hasclass('o_account_reports_header_hierarchy')]" position="replace">
+            <thead style="border:none;">
+                    <tr t-foreach="column_headers" t-as="header_line">
+                        <t t-foreach="header_line" t-as="cell">
+                            <th style="border:none !important;"
+                            >
+                                <div>
+                                    <u><t t-out="cell.get('name')">Table Header</t></u>
+                                </div>
+                            </th>
+                        </t>
+                    </tr>
+            </thead>
+        </xpath>
+   </template>
+
+   <template id="custom_line_template_inherit">
+        <t t-foreach="lines" t-as="line">
+            <t t-set="trclass" t-value="'o_account_reports_default_style'"/>
+            <t t-set="domainClass" t-value="'o_account_reports_domain_line_2 acc_rep_line_name'"/>
+            <t t-if="line.get('level') != None">
+                <t t-set="trclass" t-value="'o_account_searchable_line o_account_reports_level'+str(line['level'])"/>
+                <t t-if="line.get('caret_options')">
+                    <t t-set="domainClass" t-value="'o_account_reports_domain_line_' + str(line['level']) + ' acc_rep_line_name'"/>
+                </t>
+            </t>
+            <tr t-attf-class="#{trclass} #{line.get('class', '')} #{'o_js_account_report_parent_row_unfolded' if line.get('unfolded', False) else ''}"
+                        tabindex="0"
+                        t-att-data-parent-id="line.get('parent_id', False)"
+                        t-att="{k: v for k, v in line.items() if k.startswith('data-')}"
+                        t-att-style="line.get('style', '')" style="border:none !important;">
+                <td
+                    t-att-data-id="line['id']"
+                    t-att-class="'o_account_report_line_indent ' + (line.get('unfoldable') and 'js_account_report_foldable o_foldable_total' or '') + 'ps-2 pe-2' + line.get('name_class', '')"
+                    t-att-data-unfolded="line.get('unfolded', False)"
+                    t-att-data-groupby="line.get('groupby')"
+                    t-att-data-expand-function="line.get('expand_function')"
+                    t-att-data-offset="line.get('offset', 0)"
+                    t-att-data-progress="line.get('progress')"
+                    t-att-data-parent-id="line.get('parent_id')"
+                    t-att-colspan="line.get('colspan', '1')"
+                    style="border:none !important;"
+                >
+                    <span class="acc_rep_line_name" t-att-title="line.get('title_hover')">
+                        <t t-out="line.get('name')">Table Value</t>
+                    </span>
+                </td>
+                <t t-foreach="line.get('columns')" t-as="cell">
+                    <t t-set="cell_classes" t-value="(cell.get('class', '') + (line.get('unfoldable') and ' o_foldable_total' or ''))"/>
+                    <t t-set="style_classes" t-value="cell.get('style', '')"/>
+
+                    <td style="border:none !important;">
+                        <div t-att-style="style_classes" t-att-class="cell_classes + ' o_account_report_column_value ps-2 pe-2'">
+                            <span class="o_account_report_column_value" t-out="cell.get('name')">Name</span>
+                        </div>
+                    </td>
+                </t>
+            </tr>
+        </t>
+   </template>
+
+    <template id="template_followup_report_inherit" inherit_id="account_followup.template_followup_report">
+        <xpath expr="//table[hasclass('o_account_reports_table')]" position="replace">
+            <table class="table table-sm table-borderless" t-att-width="'100%'" style="page-break-inside: avoid;border:none !important;">
+                <t t-call="account_followup.table_header_template_followup_report">
+                    <t t-set="column_headers" t-value="[report._get_followup_report_columns_name()]"/>
+                </t>
+
+                <t t-call="erpweb_follow_up_report.custom_line_template_inherit">
+                    <t t-set="lines" t-value="report._get_followup_report_lines(options)"/>
+                </t>
+            </table>
+        </xpath>
+        <xpath expr="//div[hasclass('print_only')]" position="replace">
+            <div class="print_only"  style="display:none;">
+                <h2>
+                <strong>
+                    Customer Statement
+                </strong>
+                </h2>
+            </div>
+        </xpath>
+        <xpath expr="//t[@t-call='account_followup.followup_filter_info_template']" position="before">
+            <div class="print_only" style="text-align:center;margin-top:4% !important;">
+                <h2>
+                <strong>
+                    Statement
+                </strong>
+                </h2>
+            </div>
+        </xpath>
+        <xpath expr="//div[hasclass('o_account_reports_body')]" position="attributes">
+            <attribute name="style">margin-top:-10%!important;</attribute>
+        </xpath>
+
+        <xpath expr="//div[hasclass('o_account_reports_summary')]" position="replace">
+
+            <div class="o_account_reports_summary">
+                <t t-set="report_summary" t-value="report._get_main_body(options)"/>
+                <div class="o_account_report_summary" t-if="context.get('print_mode') != True" role="alert">
+                    <span class="o_account_report_summary_content" t-att-style="'' if report_summary else 'display: none;'">
+                        <span t-out="report_summary" t-options="{'widget': 'text'}">Invoices Analysis</span>
+                    </span>
+                    <span t-if="not report_summary and not context.get('print_mode')" class="o_account_report_summary_placeholder">
+                        Add a note
+                    </span>
+                </div>
+            </div>
+        </xpath>
+    </template>
+    <template id="aging_bucket_address__inherit" inherit_id="account_followup.followup_filter_info_template">
+        <xpath expr="//p" position="replace">
+            <p style="margin-top: 35px;display:none;">
+                    Date: <span t-out="datetime.date.today()" t-options="{'widget': 'date'}">2023-09-06</span><br/>
+                    <span t-if='partner_addr.ref'>Customer ref: <span t-field="partner_addr.ref">Demo Ref</span></span>
+                </p>
+        </xpath>
+        <xpath expr="//div[hasclass('fallback_header')]" position="replace">
+            <div class="row fallback_header">
+                    <div class="col-6">
+                        <span t-field="partner_addr.name"/>
+                        <div t-field="partner_addr.self"
+                            t-options='{"widget": "contact", "fields": contact_widget_fields, "no_marker": True}'/>
+                        VAT No: <span t-field="partner_addr.vat"/>
+                    </div>
+                    <div class="col-6">
+                        <table class="table table-sm">
+                                <tr>
+                                    <t t-if="context.get('fdate')">
+                                        <td>Date:</td>
+                                        <td><t t-esc="context.get('fdate')" t-options="{'widget': 'date'}"/></td>
+                                    </t>
+                                    <t t-else="">
+                                        <td>Date:</td>
+                                        <td><span t-out="datetime.date.today()" t-options="{'widget': 'date'}">2023-09-06</span></td>
+                                    </t>
+                                </tr>
+                                <tr>
+                                    <t t-if='partner_addr.total_due'>
+                                        <td>Total Due:</td>
+                                        <td><span t-field="partner_addr.total_due"/></td>
+                                    </t>
+                                </tr>
+                                <tr>
+                                    <t t-if='partner_addr.property_payment_term_id'>
+                                        <td>Terms:</td>
+                                        <td><span t-field="partner_addr.property_payment_term_id"/></td>
+                                    </t>
+                                </tr>
+                                <tr>
+                                    <t t-if='partner_addr.ref'>
+                                        <td>Customer ref:</td>
+                                        <td><span t-field="partner_addr.ref"/></td>
+                                    </t>
+                                </tr>
+                                <tr></tr>
+                        </table>
+                    </div>
+                </div>
+        </xpath>
+    </template>
+
+    <template id="line_template_inherit" inherit_id="erpweb_follow_up_report.custom_line_template_inherit">
+        <xpath expr="//tr//td[1]" position="attributes">
+            <attribute name="style">display:none !important;</attribute>
+        </xpath>
+    </template>
+
+
+    <template id="aging_bucket_report_inherit" inherit_id="account_followup.report_followup_print_all">
+        <xpath expr="//t[@t-call='web.external_layout']" position="replace">
+            <t t-call="erpweb_follow_up_report.followup_report_layout">
+                <t t-set="fallback_address" t-value="doc.browse(doc.address_get(['invoice'])['invoice']) or doc"/>
+                <t t-call-assets="account_followup.assets_followup_report"/>
+
+                <div class="page" style="margin-top:2%;">
+                    <span t-out="doc.get_followup_html()"/>
+                </div>
+
+                <t t-set="dict1" t-value="doc.get_followup_aging()"/>
+
+                <!-- Aging Summary Title -->
+                <h3 style="margin-top:10px; margin-bottom:8px; color:#3c4a57;">
+                    Aging Summary
+                </h3>
+
+                <t t-set="dict1" t-value="doc.get_followup_aging()"/>
+
+                <table style="width:100%; border-collapse:separate; border-spacing:6px 4px;">
+                    <tr style="text-align:center; font-size:12px; font-weight:600; color:#444;">
+                        <!-- Labels -->
+                        <t t-foreach="range(6, -1, -1)" t-as="i">
+                            <td>
+                                <t t-esc="dict1.get('labels', [])[i] if dict1.get('labels') else ''"/>
+                            </td>
+                        </t>
+                        <td>Older</td>
+                        <td>Total Due</td>
+                    </tr>
+
+                    <tr>
+                        <!-- Buckets -->
+                        <t t-foreach="range(6, -1, -1)" t-as="i">
+                            <td style="                 border:1px solid #bfbfbf;                 border-radius:6px;                 background:#f5f5f5;                 padding:6px;                 text-align:right;                 font-weight:600;                 font-size:13px;             ">
+                                <span t-esc="dict1['cur']"/>
+                                <span t-esc="dict1.get('bucket_%s' % i, 0)" t-options="{'widget': 'float', 'precision': 2}"/>
+                            </td>
+                        </t>
+
+                        <!-- Older -->
+                        <td style="             border:1px solid #bfbfbf;             border-radius:6px;             background:#f5f5f5;             padding:6px;             text-align:right;             font-weight:600;             font-size:13px;         ">
+                            <span t-esc="dict1['cur']"/>
+                            <span t-esc="dict1.get('older', 0)" t-options="{'widget': 'float', 'precision': 2}"/>
+                        </td>
+
+                        <!-- Total Due -->
+                        <t t-set="total_due" t-value="0"/>
+                        <t t-foreach="range(0, 7)" t-as="i">
+                            <t t-set="total_due" t-value="total_due + dict1.get('bucket_%s' % i, 0)"/>
+                        </t>
+                        <t t-set="total_due" t-value="total_due + dict1.get('older', 0)"/>
+
+                        <td style="             border:2px solid #000;             border-radius:6px;             background:#eaeaea;             padding:6px;             text-align:right;             font-weight:700;             font-size:14px;         ">
+                            <span t-esc="dict1['cur']"/>
+                            <span t-esc="total_due" t-options="{'widget': 'float', 'precision': 2}"/>
+                        </td>
+                    </tr>
+                </table>
+            </t>
+        </xpath>
+    </template>
+
+    <template id="followup_report_layout">
+        <div t-attf-class="header o_company_#{company.id}_layout" t-att-style="report_header_style">
+            <div class="row">
+                <div class="col-3 mb4">
+                    <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" style="width:60%;" alt="Logo"/>
+                </div>
+                <div class="col-4 mb4" style="font-size:15px;margin-left:5%;">
+                    <div name="company_address" class="mb4">
+                        <ul class="list-unstyled" name="company_address_list">
+                            <li t-if="company.is_company_details_empty"><span t-field="company.partner_id" t-options='{"widget": "contact", "fields": ["address", "name"], "no_marker": true}'>
+                                <div class="bg-light border-1 rounded h-100 d-flex flex-column align-items-center justify-content-center p-4 w-100 opacity-75 text-muted text-center">
+                                    <strong>Company address block</strong>
+                                    <div>Contains the company address.</div>
+                                </div>
+                            </span></li>
+                            <li t-else="">
+                                <span t-field="company.company_details">
+                                    <div class="bg-light border-1 rounded h-100 d-flex flex-column align-items-center justify-content-center p-4 w-100 opacity-75 text-muted text-center">
+                                        <strong>Company details block</strong>
+                                        <div>Contains the company details.</div>
+                                    </div>
+                                </span>
+                            </li>
+                            <li t-if="not forced_vat"/>
+                            <li t-else="">
+                                <t t-esc="company.country_id.vat_label or 'Tax ID'">Tax ID</t>:
+                                <span t-esc="forced_vat">US12345671</span>
+                            </li>
+
+                        </ul>
+
+                    </div>
+
+                </div>
+                <div class="col-4 mb4" style="font-size:15px; margin-left:5%;">
+
+                    <div name="company_address" class="mb4">
+                        <div t-if="company.company_registry" class="list-inline-item">Reg: <span t-field="company.company_registry"/></div>
+                        <div t-if="company.vat" class="list-inline-item">VAT No: <span t-field="company.vat"/></div>
+                        <div t-if="company.phone" class="list-inline-item">TEL No: <span t-field="company.phone"/></div>
+                        <div t-if="company.email" class="list-inline-item">Email: <span t-field="company.email"/></div>
+                        <div t-if="company.website" class="list-inline-item">Website: <span t-esc="company.website.replace('http://', '').replace('https://', '')"/></div>
+                    </div>
+
+                </div>
+            </div>
+            <div t-if="company.logo or company.report_header" class="row zero_min_height">
+                <div class="col-12">
+                    <div style="border-bottom: 1px solid black;"/>
+                </div>
+            </div>
+        </div>
+
+        <div t-attf-class="article o_report_layout_boxed o_company_#{company.id}_layout {{ 'o_layout_background' if company.layout_background in ['Geometric', 'Custom'] else '' }}" t-attf-style="background-image: url({{ 'data:image/png;base64,%s' % company.layout_background_image.decode('utf-8') if company.layout_background_image and company.layout_background == 'Custom' else '/base/static/img/bg_background_template.jpg' }});" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+            <div class="pt-5">
+                <!-- This div ensures that the address is not cropped by the header. -->
+                <t t-call="web.address_layout"/>
+            </div>
+            <t t-out="0"/>
+            <div t-attf-class="footer o_standard_footer o_company_#{company.id}_layout">
+                <div class='row' style="border-top:1px black;">
+                    <div class='col-6'>
+                        <div t-if="report_type == 'pdf'">
+                            Page: <span class="page"/> / <span class="topage"/>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </template>
+
+    <record id="paperformat_landscape" model="report.paperformat">
+            <field name="name">Follow Up Report</field>
+            <field name="default" eval="False"/>
+            <field name="format">A4</field>
+            <field name="page_height">0</field>
+            <field name="page_width">0</field>
+            <field name="orientation">Portrait</field>
+            <field name="margin_top">34</field>
+            <field name="margin_bottom">31</field>
+            <field name="margin_left">7</field>
+            <field name="margin_right">7</field>
+            <field name="header_line" eval="False"/>
+            <field name="header_spacing">40</field>
+            <field name="dpi">90</field>
+    </record>
+
+    <record id="account_followup.action_report_followup" model="ir.actions.report">
+        <field name="paperformat_id" ref="paperformat_landscape"/>
+    </record>
+
+    <record id="email_template_follow_up" model="mail.template">
+        <field name="name">Send Follow-ups Email</field>
+        <field name="subject">Follow-ups</field>
+        <field name="model_id" ref="base.model_res_partner"/>
+        <field name="partner_to">{{ object.id }}</field>
+        <field name="auto_delete" eval="True"/>
+        <field name="report_template_ids" eval="[(4, ref('account_followup.action_report_followup'))]"/>
+        <field name="lang">{{ object.lang }}</field>
+    </record>
+     <record model="ir.ui.view" id="email_compose_form_mass_mailing_inherit">
+            <field name="name">mail.compose.message.form.mass_mailing</field>
+            <field name="model">mail.compose.message</field>
+            <field name="inherit_id" ref="mail.email_compose_message_wizard_form"/>
+            <field name="arch" type="xml">
+                <xpath expr="//form//group//field[@name='reply_to']" position="after">
+                    <field name="follow_up_date" invisible="model != 'res.partner'"/>
+                </xpath>
+            </field>
+        </record>
+    <record id="res_company_inherit" model="ir.ui.view">
+        <field name="name">res.company.inherit</field>
+        <field name="model">res.company</field>
+        <field name="inherit_id" ref="base.view_company_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='currency_id']" position="after">
+                <field name="account_number"/>
+                <field name="aging_period_mode" widget="radio"/>
+            </xpath>
+        </field>
+    </record>
+    <record model="ir.ui.view" id="manual_reminder_view_form_inherit">
+        <field name="name">account.followup.manual_reminder.view.form.inherit</field>
+        <field name="model">account_followup.manual_reminder</field>
+        <field name="inherit_id" ref="account_followup.manual_reminder_view_form"/>
+        <field name="arch" type="xml">
+            <xpath expr="//form//group[@name='attachments']" position="inside">
+                <group colspan="2">
+                    <field name="print_follow_up_date" colspan="2"/>
+                </group>
+                
+            </xpath>
+        </field>
+    </record>
+</odoo>
