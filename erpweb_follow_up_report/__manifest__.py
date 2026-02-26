@@ -23,7 +23,7 @@
                 ],
         },
         "price"       : 86.10,
-        "currency"    : "EUR",
+        "currency"    : "USD",
         "images"      : ["static/description/banner.png",],
         'license'     : 'OPL-1',
 }
