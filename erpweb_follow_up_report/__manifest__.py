@@ -22,7 +22,7 @@
                     'erpweb_follow_up_report/static/src/scss/account_pdf_export_template.scss',
                 ],
         },
-        "price"       : 123,
+        "price"       : 86.10,
         "currency"    : "EUR",
         "images"      : ["static/description/banner.png",],
         'license'     : 'OPL-1',
