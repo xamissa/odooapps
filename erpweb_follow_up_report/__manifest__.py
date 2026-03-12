@@ -1,5 +1,5 @@
 {
-        'name': 'Aging Bucket Follow up Report',
+        'name': 'Aged Statement',
         'description': """
                 The Aging Bucket Follow up Report module extends Odoo's native accounting capabilities with advanced partner aging analysis and customizable follow-up reporting. It provides businesses with powerful tools to manage accounts receivable more effectively through configurable aging periods and professional PDF reports.
          """,

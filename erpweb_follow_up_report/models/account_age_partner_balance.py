@@ -180,7 +180,7 @@ class AgedPartnerBalanceCustomHandler(models.AbstractModel):
             JOIN period_table ON
                 (
                     period_table.date_start IS NULL
-                    OR COALESCE(account_move_line.date, account_move_line.date) <= DATE(period_table.date_start)
+                    OR COALESCE(account_move_line.date, account_move_line.date) < DATE(period_table.date_start)
                 )
                 AND
                 (
